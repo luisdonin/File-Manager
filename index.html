@@ -1,0 +1,179 @@
+<!-- FILEPATH: /C:/Users/josed/OneDrive/Área de Trabalho/game/index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Horror Movie Recommendations</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .movie-card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            padding: 20px;
+        }
+        .movie-card h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .movie-card p {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .movie-card .rating {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .movie-card .poster {
+            margin-bottom: 10px;
+        }
+        .movie-card .poster img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Horror Movie Recommendations</h1>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="movie-card">
+                    <h2>Most Popular</h2>
+                    <div class="poster">
+                        <img src="" alt="">
+                    </div>
+                    <p class="title"></p>
+                    <p class="rating"></p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="movie-card">
+                    <h2>Most Underrated</h2>
+                    <div class="poster">
+                        <img src="" alt="">
+                    </div>
+                    <p class="title"></p>
+                    <p class="rating"></p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="movie-card">
+                    <h2>Least Viewed</h2>
+                    <div class="poster">
+                        <img src="" alt="">
+                    </div>
+                    <p class="title"></p>
+                    <p class="rating"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // IMDb API endpoint
+        const API_URL = 'https://imdb-api.com/en/API/SearchMovie/k_1234567/horror/';
+
+        // Movie recommendations
+        let movies = [];
+
+        // Refresh movie recommendations every hour
+        setInterval(() => {
+            getMovies();
+        }, 3600000);
+
+        // Get movie recommendations
+        function getMovies() {
+            // Clear previous movie recommendations
+            movies = [];
+
+            // Get popular horror movies
+            axios.get(API_URL + 'popularity')
+                .then(response => {
+                    // Add top movie to recommendations
+                    movies.push(response.data.results[0]);
+
+                    // Get underrated horror movies
+                    axios.get(API_URL + 'user_rating')
+                        .then(response => {
+                            // Filter out movies with high ratings
+                            const underratedMovies = response.data.results.filter(movie => movie.imDbRating < 6);
+
+                            // Sort by rating
+                            underratedMovies.sort((a, b) => b.imDbRating - a.imDbRating);
+
+                            // Add top movie to recommendations
+                            movies.push(underratedMovies[0]);
+
+                            // Get least viewed horror movies
+                            axios.get(API_URL + 'box_office')
+                                .then(response => {
+                                    // Filter out movies with high box office revenue
+                                    const leastViewedMovies = response.data.results.filter(movie => movie.boxOffice.cumulativeWorldwideGross < 1000000);
+
+                                    // Sort by box office revenue
+                                    leastViewedMovies.sort((a, b) => a.boxOffice.cumulativeWorldwideGross - b.boxOffice.cumulativeWorldwideGross);
+
+                                    // Add top movie to recommendations
+                                    movies.push(leastViewedMovies[0]);
+
+                                    // Display movie recommendations
+                                    displayMovies();
+                                })
+                                .catch(error => {
+                                    console.error(error);
+                                });
+                        })
+                        .catch(error => {
+                            console.error(error);
+                        });
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
+
+        // Display movie recommendations
+        function displayMovies() {
+            // Shuffle movies to prevent duplicates
+            shuffle(movies);
+
+            // Display most popular movie
+            $('.movie-card:nth-child(1) .poster img').attr('src', movies[0].image);
+            $('.movie-card:nth-child(1) .title').text(movies[0].title);
+            $('.movie-card:nth-child(1) .rating').text(`Rating: ${movies[0].imDbRating}`);
+
+            // Display most underrated movie
+            $('.movie-card:nth-child(2) .poster img').attr('src', movies[1].image);
+            $('.movie-card:nth-child(2) .title').text(movies[1].title);
+            $('.movie-card:nth-child(2) .rating').text(`Rating: ${movies[1].imDbRating}`);
+
+            // Display least viewed movie
+            $('.movie-card:nth-child(3) .poster img').attr('src', movies[2].image);
+            $('.movie-card:nth-child(3) .title').text(movies[2].title);
+            $('.movie-card:nth-child(3) .rating').text(`Rating: ${movies[2].imDbRating}`);
+        }
+
+        // Shuffle array
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Get initial movie recommendations
+        getMovies();
+    </script>
+</body>
+</html>
