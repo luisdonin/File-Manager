@@ -1,4 +1,3 @@
-GitHub Copilot: Here's an example README file for your GTK file manager project:
 
 # GTK File Manager
 
