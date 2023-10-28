@@ -50,7 +50,7 @@ void read_file(GtkWidget *widget, gpointer data) {
             file.close();
             g_free(filename);
             gtk_widget_destroy(dialog);
-            GtkWidget *message = gtk_message_dialog_new(GTK_WINDOW(data), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, content.c_str());
+            GtkWidget *message = gtk_message_dialog_new(GTK_WINDOW(data), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "%s", content.c_str());
             gtk_dialog_run(GTK_DIALOG(message));
             gtk_widget_destroy(message);
         } else {
@@ -82,9 +82,13 @@ void write_file(GtkWidget *widget, gpointer data) {
         if (file.is_open()) {
             GtkWidget *content_dialog = gtk_message_dialog_new(GTK_WINDOW(data), GTK_DIALOG_MODAL, GTK_MESSAGE_QUESTION, GTK_BUTTONS_OK_CANCEL, "Enter the content:");
             gtk_window_set_title(GTK_WINDOW(content_dialog), "Write to a file");
-            GtkResponseType content_res = gtk_dialog_run(GTK_DIALOG(content_dialog));
+            GtkResponseType content_res = static_cast<GtkResponseType>(gtk_dialog_run(GTK_DIALOG(content_dialog)));
             if (content_res == GTK_RESPONSE_OK) {
-                const char *content = gtk_message_dialog_get_text(GTK_MESSAGE_DIALOG(content_dialog));
+                GtkWidget *content_entry = gtk_entry_new();
+                gtk_container_add(GTK_CONTAINER(gtk_message_dialog_get_message_area(GTK_MESSAGE_DIALOG(content_dialog))), content_entry);
+                gtk_widget_show_all(content_dialog);
+                gtk_dialog_run(GTK_DIALOG(content_dialog));
+                const char *content = gtk_entry_get_text(GTK_ENTRY(content_entry));
                 file << content << endl;
                 GtkWidget *message = gtk_message_dialog_new(GTK_WINDOW(data), GTK_DIALOG_MODAL, GTK_MESSAGE_INFO, GTK_BUTTONS_OK, "Content written to file successfully.");
                 gtk_dialog_run(GTK_DIALOG(message));
